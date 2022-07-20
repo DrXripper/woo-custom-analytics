@@ -1,137 +1,14 @@
 <?php
 /**
- * Plugin Name: Woo Analitics Filter 
- * Description: To add custom filters on woocommerce order and analytics order in admin dashboard.  
- * Version: 1.0 
- * Author: Hemchand Saini
- * Author URI: https://mswebinfotech.com/
+ * Plugin Name: Konbini Analytics Custom Filter
+ * Description: Adds custom filters inside woocommerce analytics.
+ * Version: 1.0
+ * Author: Prathamesh Kothavale
+ * Author URI: https://konbitech.com/
  * Text Domain: woofilters
  *
  */
  
-add_action( 'restrict_manage_posts', 'display_admin_shop_order_filters' );
-function display_admin_shop_order_filters(){
-    global $pagenow, $post_type, $wpdb;  
-    
-
-    if( 'shop_order' === $post_type && 'edit.php' === $pagenow ) {
-        $domain    = 'koc';    
-        $locationOptions = (array)get_terms( 'filter_options', array(  'hide_empty' => 0,'description__like' => 'locations')); 
-        $machineOptions = (array)get_terms( 'filter_options', array(  'hide_empty' => 0,'description__like' => 'machines' )); 
-        $terminalOptions = (array)get_terms( 'filter_options', array(  'hide_empty' => 0,'description__like' => 'terminals'));
-        $sourceOptions = (array)get_terms( 'filter_options', array(  'hide_empty' => 0, 'description__like' => 'sources')); 
-        $storeOptions = (array)get_terms( 'filter_options', array(  'hide_empty' => 0,'description__like' => 'stores'));
-
-        //Filter for Locations metadata 
-        if($locationOptions){ 
-                $current   = isset($_GET['filter_shop_order_location_name'])? $_GET['filter_shop_order_location_name'] : '';
-                echo '<select name="filter_shop_order_location_name">
-                <option value="">' . __('Select Location', $domain) . '</option>';    
-                foreach ( $locationOptions as $key=>$value ) { 
-                    printf( '<option value="%s"%s>%s</option>', $value->name, 
-                        $value->name === $current ? '" selected="selected"' : '', $value->name );
-                }
-                echo '</select>';
-        }
-        //Filter for machine metadata
-        if($machineOptions){  
-                $current   = isset($_GET['filter_shop_order_machine_name'])? $_GET['filter_shop_order_machine_name'] : '';
-                echo '<select name="filter_shop_order_machine_name">
-                <option value="">' . __('Select Machine', $domain) . '</option>';    
-                foreach ( $machineOptions as $key=>$value ) { 
-                    printf( '<option value="%s"%s>%s</option>', $value->name, 
-                        $value->name === $current ? '" selected="selected"' : '', $value->name );
-                }
-                echo '</select>';
-
-        }
-        //Filter for terminal metadata 
-        if($terminalOptions){  
-                $current   = isset($_GET['filter_shop_order_terminal_name'])? $_GET['filter_shop_order_terminal_name'] : '';
-                echo '<select name="filter_shop_order_terminal_name">
-                <option value="">' . __('Select Terminal', $domain) . '</option>';    
-                foreach ( $terminalOptions as $key=>$value ) { 
-                    printf( '<option value="%s"%s>%s</option>', $value->name, 
-                        $value->name === $current ? '" selected="selected"' : '', $value->name );
-                }
-                echo '</select>';
-        }
-        //Filter for source metadata
-        if($sourceOptions){  
-                $current   = isset($_GET['filter_shop_order_source_name'])? $_GET['filter_shop_order_source_name'] : '';
-                echo '<select name="filter_shop_order_source_name">
-                <option value="">' . __('Select Source', $domain) . '</option>';    
-                foreach ( $sourceOptions as $key=>$value ) { 
-                    printf( '<option value="%s"%s>%s</option>', $value->name, 
-                        $value->name === $current ? '" selected="selected"' : '', $value->name );
-                }
-                echo '</select>'; 
-        }
-        //Filter for store metadata
-        if($storeOptions){ 
-                $current   = isset($_GET['filter_shop_order_store_name'])? $_GET['filter_shop_order_store_name'] : '';
-                echo '<select name="filter_shop_order_store_name">
-                <option value="">' . __('Select Store', $domain) . '</option>';    
-                foreach ( $storeOptions as $key=>$value ) { 
-                    printf( '<option value="%s"%s>%s</option>', $value->name, 
-                        $value->name === $current ? '" selected="selected"' : '', $value->name );
-                }
-                echo '</select>';
-        }   
-    }
-}
-
-add_action( 'pre_get_posts', 'process_admin_shop_order_filters' );
-function process_admin_shop_order_filters( $query ) { 
-    global $pagenow;  
-    $meta_query = array('relation' => 'AND');
-    if ( $query->is_admin && $pagenow == 'edit.php' && isset( $_GET['filter_shop_order_location_name'] ) 
-        && $_GET['filter_shop_order_location_name'] != '' && $_GET['post_type'] == 'shop_order' ) { 
-        $meta_query[] =   array(
-                'key' => '_exwoofood_location',
-                'value' => esc_attr( $_GET['filter_shop_order_location_name'] ),
-                'compare' => '='
-            ); 
-    }
-
-    if ( $query->is_admin && $pagenow == 'edit.php' && isset( $_GET['filter_shop_order_machine_name'] ) 
-        && $_GET['filter_shop_order_machine_name'] != '' && $_GET['post_type'] == 'shop_order' ) { 
-        $meta_query[] =  array(
-                'key' => '_machine_name',
-                'value' => esc_attr( $_GET['filter_shop_order_machine_name'] ),
-                'compare' => '=' 
-        );  
-    }
-
-    if ( $query->is_admin && $pagenow == 'edit.php' && isset( $_GET['filter_shop_order_terminal_name'] ) 
-        && $_GET['filter_shop_order_terminal_name'] != '' && $_GET['post_type'] == 'shop_order' ) { 
-        $meta_query[] =   array(
-                'key' => '_order_terminal',
-                'value' => esc_attr( $_GET['filter_shop_order_terminal_name'] ),
-                'compare' => '=' 
-        );  
-    }
-
-    if ( $query->is_admin && $pagenow == 'edit.php' && isset( $_GET['filter_shop_order_store_name'] ) 
-        && $_GET['filter_shop_order_store_name'] != '' && $_GET['post_type'] == 'shop_order' ) { 
-        $meta_query[] =  array(
-                'key' => '_order_store',
-                'value' => esc_attr( $_GET['filter_shop_order_store_name'] ),
-                'compare' => '=' 
-        );   
-    }
-
-     if ( $query->is_admin && $pagenow == 'edit.php' && isset( $_GET['filter_shop_order_source_name'] ) 
-        && $_GET['filter_shop_order_source_name'] != '' && $_GET['post_type'] == 'shop_order' ) { 
-        $meta_query[] = array(
-                'key' => '_order_source',
-                'value' => esc_attr( $_GET['filter_shop_order_source_name'] ),
-                'compare' => '=' 
-        );  
-    }   
-    $query->set( 'meta_query', $meta_query );
-}
-
 
 
 /*WooCommerce Analytics Filters*/
